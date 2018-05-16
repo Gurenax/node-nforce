@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "nforce": "^1.10.0"
+  },
+  "devDependencies": {
+    "dotenv": "^5.0.1"
+  }
+}
