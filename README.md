@@ -15,5 +15,9 @@ SALESFORCE_SECURITY_TOKEN =
 5. Run `node app.js`
 
 
+## About
+- The goal of this project is to create a basic implementation of `nforce` using modern javascript while utilising concepts like promises, async/await.
+
+
 ## Reference
 - https://github.com/kevinohara80/nforce
