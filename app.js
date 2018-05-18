@@ -94,6 +94,40 @@ const createRecord = (sobjectName, recordData, oauth) => {
   })
 }
 
+const sampleDataUpdated = {
+  Name: 'Spiffy Cleaners Updated',
+  Phone: '800-555-5555',
+  SLA__c: 'Gold'
+}
+
+/**
+ * Update a record
+ * @param {string} sobjectName - Name of the SObject (e.g. Account)
+ * @param {object} recordDataWithID  - Key value pair of Field Names and Field Values
+ * @param {object} oauth       - OAuth string received from successful authentication
+ */
+const updateRecord = (sobjectName, recordDataWithID, oauth) => {
+  const sobj = nforce.createSObject(sobjectName)
+  Object.entries(recordData).map(([key, value]) => {
+    sobj.set(key, value)
+  })
+  return new Promise((resolve, reject) => {
+    org.update(
+      {
+        sobject: sobj,
+        oauth: oauth
+      },
+      (error, response) => {
+        if (!error) {
+          resolve(response)
+        } else {
+          reject(error)
+        }
+      }
+    )
+  })
+}
+
 /**
  * Run the app
  */
@@ -122,6 +156,17 @@ const run = async () => {
     )
     console.log(accountRecord)
 
+    // Update a record
+    sampleDataUpdated.id = account.id // Assign the account ID to be updated
+    let accountUpdated = await updateRecord('Account', sampleDataUpdated, oauth)
+    console.log(accountUpdated)
+
+    // Perform another account query
+    let accountRecordUpdated = await query(
+      `SELECT Id, Name, SLA__c FROM Account WHERE Id = '${account.id}'`,
+      oauth
+    )
+    console.log(accountRecordUpdated)
   } catch (error) {
     console.error(error)
   }
