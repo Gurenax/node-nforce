@@ -14,9 +14,9 @@ const org = nforce.createConnection({
 
 /**
  * Authenticate to login a user in the org
- * @param {*} username - e.g. john@example.com
- * @param {*} password
- * @param {*} securityToken - Your user's security token.
+ * @param {string} username - e.g. john@example.com
+ * @param {string} password
+ * @param {string} securityToken - Your user's security token.
  *                            This can be reset in the org if needed.
  */
 const authenticate = (username, password, securityToken) =>
@@ -40,8 +40,8 @@ const authenticate = (username, password, securityToken) =>
 
 /**
  * Perform a SOQL Query
- * @param {*} queryString - SOQL query
- * @param {*} oauth       - OAuth string received from successful authentication
+ * @param {string} queryString - SOQL query
+ * @param {object} oauth       - OAuth string received from successful authentication
  */
 const query = (queryString, oauth) =>
   new Promise((resolve, reject) => {
@@ -68,9 +68,9 @@ const sampleData = {
 
 /**
  * Create a record
- * @param {*} sobjectName - Name of the SObject (e.g. Account)
- * @param {*} recordData  - Key value pair of Field Names and Field Values
- * @param {*} oauth       - OAuth string received from successful authentication
+ * @param {string} sobjectName - Name of the SObject (e.g. Account)
+ * @param {object} recordData  - Key value pair of Field Names and Field Values
+ * @param {object} oauth       - OAuth string received from successful authentication
  */
 const createRecord = (sobjectName, recordData, oauth) => {
   const sobj = nforce.createSObject(sobjectName)
