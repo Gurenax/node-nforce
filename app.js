@@ -99,11 +99,13 @@ const createRecord = (sobjectName, recordData, oauth) => {
  */
 const run = async () => {
   try {
+    // Perform authentication
     const oauth = await authenticate(
       process.env.SALESFORCE_USERNAME,
       process.env.SALESFORCE_PASSWORD,
       process.env.SALESFORCE_SECURITY_TOKEN
     )
+    console.log(oauth)
 
     // Perform a query
     let records = await query('SELECT Id, Name FROM Account LIMIT 10', oauth)
@@ -119,6 +121,7 @@ const run = async () => {
       oauth
     )
     console.log(accountRecord)
+
   } catch (error) {
     console.error(error)
   }
