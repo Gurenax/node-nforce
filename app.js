@@ -108,11 +108,39 @@ const sampleDataUpdated = {
  */
 const updateRecord = (sobjectName, recordDataWithID, oauth) => {
   const sobj = nforce.createSObject(sobjectName)
-  Object.entries(recordData).map(([key, value]) => {
+  Object.entries(recordDataWithID).map(([key, value]) => {
     sobj.set(key, value)
   })
   return new Promise((resolve, reject) => {
     org.update(
+      {
+        sobject: sobj,
+        oauth: oauth
+      },
+      (error, response) => {
+        if (!error) {
+          resolve(response)
+        } else {
+          reject(error)
+        }
+      }
+    )
+  })
+}
+
+/**
+ * Delete a record
+ * @param {string} sobjectName - Name of the SObject (e.g. Account)
+ * @param {object} recordDataWithID  - Key value pair of Field Names and Field Values
+ * @param {object} oauth       - OAuth string received from successful authentication
+ */
+const deleteRecord = (sobjectName, recordDataWithID, oauth) => {
+  const sobj = nforce.createSObject(sobjectName)
+  Object.entries(recordDataWithID).map(([key, value]) => {
+    sobj.set(key, value)
+  })
+  return new Promise((resolve, reject) => {
+    org.delete(
       {
         sobject: sobj,
         oauth: oauth
@@ -154,7 +182,7 @@ const run = async () => {
       `SELECT Id, Name, SLA__c FROM Account WHERE Id = '${account.id}'`,
       oauth
     )
-    console.log(accountRecord)
+    console.log('Created: ', accountRecord)
 
     // Update a record
     sampleDataUpdated.id = account.id // Assign the account ID to be updated
@@ -166,7 +194,12 @@ const run = async () => {
       `SELECT Id, Name, SLA__c FROM Account WHERE Id = '${account.id}'`,
       oauth
     )
-    console.log(accountRecordUpdated)
+    console.log('Updated: ', accountRecordUpdated)
+
+    // Perform account delete
+    let accountDeleted = await deleteRecord('Account', sampleDataUpdated, oauth)
+    console.log('Deleted: ', sampleDataUpdated.id)
+
   } catch (error) {
     console.error(error)
   }
