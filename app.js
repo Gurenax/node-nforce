@@ -60,12 +60,6 @@ const query = (queryString, oauth) =>
     )
   })
 
-const sampleData = {
-  Name: 'Spiffy Cleaners',
-  Phone: '800-555-2345',
-  SLA__c: 'Gold'
-}
-
 /**
  * Create a record
  * @param {string} sobjectName - Name of the SObject (e.g. Account)
@@ -73,10 +67,7 @@ const sampleData = {
  * @param {object} oauth       - OAuth string received from successful authentication
  */
 const createRecord = (sobjectName, recordData, oauth) => {
-  const sobj = nforce.createSObject(sobjectName)
-  Object.entries(recordData).map(([key, value]) => {
-    sobj.set(key, value)
-  })
+  const sobj = nforce.createSObject(sobjectName, recordData)
   return new Promise((resolve, reject) => {
     org.insert(
       {
@@ -94,12 +85,6 @@ const createRecord = (sobjectName, recordData, oauth) => {
   })
 }
 
-const sampleDataUpdated = {
-  Name: 'Spiffy Cleaners Updated',
-  Phone: '800-555-5555',
-  SLA__c: 'Gold'
-}
-
 /**
  * Update a record
  * @param {string} sobjectName - Name of the SObject (e.g. Account)
@@ -107,10 +92,7 @@ const sampleDataUpdated = {
  * @param {object} oauth       - OAuth string received from successful authentication
  */
 const updateRecord = (sobjectName, recordDataWithID, oauth) => {
-  const sobj = nforce.createSObject(sobjectName)
-  Object.entries(recordDataWithID).map(([key, value]) => {
-    sobj.set(key, value)
-  })
+  const sobj = nforce.createSObject(sobjectName, recordDataWithID)
   return new Promise((resolve, reject) => {
     org.update(
       {
@@ -129,16 +111,50 @@ const updateRecord = (sobjectName, recordDataWithID, oauth) => {
 }
 
 /**
+ * Upsert a record
+ * @param {string} sobjectName - Name of the SObject (e.g. Account)
+ * @param {object} recordDataWithID  - Key value pair of Field Names and Field Values
+ * @param {object} oauth       - OAuth string received from successful authentication
+ */
+const upsertRecord = (sobjectName, recordDataWithID, oauth) => {
+  const sobj = nforce.createSObject(sobjectName)
+  const recordId = !!recordDataWithID.id ? recordDataWithID.id : ''
+  sobj.setExternalId('Id', recordId)
+  Object.entries(recordDataWithID).map(([key, value]) => {
+    sobj.set(key, value)
+  })
+  return new Promise((resolve, reject) => {
+    org.upsert(
+      {
+        sobject: sobj,
+        oauth: oauth,
+        requestOpts: {
+          method: !recordId ? 'POST' : 'PATCH'
+        }
+      },
+      (error, response) => {
+        if (!error) {
+          if(!recordId) {
+            resolve(response)
+          } else {
+            resolve(recordDataWithID)
+          }
+        } else {
+          reject(error)
+        }
+      }
+    )
+  })
+}
+
+/**
  * Delete a record
  * @param {string} sobjectName - Name of the SObject (e.g. Account)
  * @param {object} recordDataWithID  - Key value pair of Field Names and Field Values
  * @param {object} oauth       - OAuth string received from successful authentication
  */
 const deleteRecord = (sobjectName, recordDataWithID, oauth) => {
-  const sobj = nforce.createSObject(sobjectName)
-  Object.entries(recordDataWithID).map(([key, value]) => {
-    sobj.set(key, value)
-  })
+  const sobj = nforce.createSObject(sobjectName, recordDataWithID)
   return new Promise((resolve, reject) => {
     org.delete(
       {
@@ -154,6 +170,27 @@ const deleteRecord = (sobjectName, recordDataWithID, oauth) => {
       }
     )
   })
+}
+
+/**
+ * Mock Data
+ */
+const sampleData = {
+  Name: 'Spiffy Cleaners',
+  Phone: '800-555-2345',
+  SLA__c: 'Gold'
+}
+
+const sampleDataUpdated = {
+  Name: 'Spiffy Cleaners Updated',
+  Phone: '800-555-5555',
+  SLA__c: 'Gold'
+}
+
+const sampleDataUpserted = {
+  Name: 'Spiffy Cleaners Upserted',
+  Phone: '800-777-7777',
+  SLA__c: 'Gold'
 }
 
 /**
@@ -200,6 +237,18 @@ const run = async () => {
     let accountDeleted = await deleteRecord('Account', sampleDataUpdated, oauth)
     console.log('Deleted: ', sampleDataUpdated.id)
 
+    // Upsert a record (Insert)
+    let accountUpserted = await upsertRecord('Account', sampleDataUpserted, oauth)
+    console.log('Upsert Insert:', accountUpserted)
+
+    // Prepare upsert
+    sampleDataUpserted.id = accountUpserted.id
+    sampleDataUpserted.Name = 'Spiffy Cleaners Upserted Twice'
+
+    // Upsert a record (Update)
+    let accountUpserted2 = await upsertRecord('Account', sampleDataUpserted, oauth)
+    console.log('Upsert Update:', accountUpserted2)
+    
   } catch (error) {
     console.error(error)
   }
